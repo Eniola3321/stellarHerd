@@ -1,0 +1,334 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+model User {
+  id               String   @id @default(uuid())
+  firstName        String
+  lastName         String
+  email            String   @unique
+  phoneNumber      String?  @unique
+  password         String
+  role             UserRole
+
+  stellarAddress   String?
+  reputationScore  Int      @default(0)
+
+  cooperativeId    String?
+
+  cooperative      Cooperative? @relation(fields: [cooperativeId], references: [id])
+
+  farms            Farm[]
+
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}
+model Cooperative {
+  id          String @id @default(uuid())
+  name        String
+  description String?
+
+  users       User[]
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+model Farm {
+  id               String @id @default(uuid())
+
+  name             String
+
+  country          String
+  state            String?
+  district         String?
+
+  latitude         Decimal?
+  longitude        Decimal?
+
+  ownerId          String
+
+  owner            User @relation(fields: [ownerId], references: [id])
+
+  livestock        Livestock[]
+
+  sustainability   SustainabilityMetric[]
+
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}
+model Livestock {
+  id                    String @id @default(uuid())
+
+  earTag                String @unique
+
+  blockchainIdentityId  String?
+
+  name                  String?
+
+  species               Species
+
+  breed                 String?
+
+  sex                   Gender
+
+  dateOfBirth           DateTime?
+
+  weight                Float?
+
+  color                 String?
+
+  farmId                String
+
+  ownerId               String
+
+  farm                  Farm @relation(fields: [farmId], references: [id])
+
+  owner                 User @relation(fields: [ownerId], references: [id])
+
+  healthRecords         HealthRecord[]
+
+  vaccinations          Vaccination[]
+
+  feedingLogs           FeedingLog[]
+
+  breedingRecords       BreedingRecord[]
+
+  productivityRecords   ProductivityRecord[]
+
+  rewards               Reward[]
+
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+}
+
+model HealthRecord {
+  id               String @id @default(uuid())
+
+  livestockId      String
+
+  symptoms         String?
+
+  diagnosis        String?
+
+  treatment        String?
+
+  veterinarianNote String?
+
+  aiGenerated      Boolean @default(false)
+
+  livestock        Livestock @relation(fields: [livestockId], references: [id])
+
+  createdAt        DateTime @default(now())
+}
+model Vaccination {
+  id                String @id @default(uuid())
+
+  livestockId       String
+
+  vaccineName       String
+
+  administeredAt    DateTime
+
+  nextDueDate       DateTime?
+
+  administeredBy    String?
+
+  notes             String?
+
+  livestock         Livestock @relation(fields: [livestockId], references: [id])
+
+  createdAt         DateTime @default(now())
+}
+model FeedingLog {
+  id               String @id @default(uuid())
+
+  livestockId      String
+
+  feedType         String
+
+  quantity         Float?
+
+  feedingTime      DateTime
+
+  notes            String?
+
+  livestock        Livestock @relation(fields: [livestockId], references: [id])
+
+  createdAt        DateTime @default(now())
+}
+model BreedingRecord {
+  id               String @id @default(uuid())
+
+  livestockId      String
+
+  breedingDate     DateTime
+
+  expectedDelivery DateTime?
+
+  actualDelivery   DateTime?
+
+  offspringCount   Int?
+
+  notes            String?
+
+  livestock        Livestock @relation(fields: [livestockId], references: [id])
+
+  createdAt        DateTime @default(now())
+}
+model ProductivityRecord {
+  id               String @id @default(uuid())
+
+  livestockId      String
+
+  metricType       ProductivityMetric
+
+  value            Float
+
+  recordedAt       DateTime
+
+  livestock        Livestock @relation(fields: [livestockId], references: [id])
+
+  createdAt        DateTime @default(now())
+}
+model SustainabilityMetric {
+  id                  String @id @default(uuid())
+
+  farmId              String
+
+  metricType          SustainabilityType
+
+  score               Float
+
+  evidence            String?
+
+  verified            Boolean @default(false)
+
+  farm                Farm @relation(fields: [farmId], references: [id])
+
+  createdAt           DateTime @default(now())
+}
+model Notification {
+  id             String @id @default(uuid())
+
+  userId         String
+
+  title          String
+
+  message        String
+
+  type           NotificationType
+
+  isRead         Boolean @default(false)
+
+  user           User @relation(fields: [userId], references: [id])
+
+  createdAt      DateTime @default(now())
+}
+model SyncQueue {
+  id              String @id @default(uuid())
+
+  userId          String
+
+  entityType      String
+
+  entityId        String
+
+  operation       SyncOperation
+
+  payload         Json
+
+  synced          Boolean @default(false)
+
+  user            User @relation(fields: [userId], references: [id])
+
+  createdAt       DateTime @default(now())
+}
+model Reward {
+  id                    String @id @default(uuid())
+
+  userId                String
+
+  livestockId           String?
+
+  amount                Decimal
+
+  assetCode             String
+
+  stellarTransactionId  String?
+
+  status                RewardStatus
+
+  reason                String
+
+  user                  User @relation(fields: [userId], references: [id])
+
+  livestock             Livestock? @relation(fields: [livestockId], references: [id])
+
+  createdAt             DateTime @default(now())
+}
+
+enum UserRole {
+  FARMER
+  ADMIN
+  VETERINARIAN
+  COOPERATIVE_MANAGER
+}
+
+enum Species {
+  CATTLE
+  GOAT
+  SHEEP
+  POULTRY
+  PIG
+}
+
+enum Gender {
+  MALE
+  FEMALE
+}
+
+enum RewardStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+enum NotificationType {
+  VACCINATION_REMINDER
+  REWARD
+  HEALTH_ALERT
+  BREEDING_ALERT
+  SYSTEM
+}
+
+enum SyncOperation {
+  CREATE
+  UPDATE
+  DELETE
+}
+
+enum ProductivityMetric {
+  MILK
+  EGGS
+  WEIGHT_GAIN
+  WOOL
+  MEAT
+}
+
+enum SustainabilityType {
+  VACCINATION_COMPLIANCE
+  GRAZING_MANAGEMENT
+  ANTIBIOTIC_REDUCTION
+  ANIMAL_WELFARE
+  SUSTAINABLE_FEEDING
+}
