@@ -15,10 +15,10 @@ import { BreedRecordModule } from './breed-record/breed-record.module';
 import { ProductivityRecordModule } from './productivity-record/productivity-record.module';
 import { MetricsModule } from './metrics/metrics.module';
 import { SyncQueueModule } from './sync-queue/sync-queue.module';
-import { UserModule } from './user/user.module';
+import { VaccinationsModule } from './vaccinations/vaccinations.module';
 
 @Module({
-  imports: [UserModule, AiModule, PrismaModule, RewardModule, FarmModule, LivestockModule, CooperativeModule, HealthModule, VaccinationModule, FeedLogsModule, BreedRecordModule, ProductivityRecordModule, MetricsModule, SyncQueueModule],
+  imports: [UserModule, AiModule, PrismaModule, RewardModule, FarmModule, LivestockModule, CooperativeModule, HealthModule, VaccinationModule, FeedLogsModule, BreedRecordModule, ProductivityRecordModule, MetricsModule, SyncQueueModule, VaccinationsModule],
   controllers: [AppController],
   providers: [AppService],
 })
